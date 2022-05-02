@@ -56,7 +56,7 @@ int main() {
 
 		fetch();
 		in = decode(instruction);
-		//execute(in);
+		execute(in);
 		// memory(in);
 		// writeback(in);
 		update_pc();
@@ -87,6 +87,7 @@ void execute(struct instruction_ in) {
 			printf("I type\n");
 		};
 	}
+	printf("\n");
 }
 
 struct instruction_ decode(int inst_binary) {
@@ -144,7 +145,7 @@ struct instruction_ decode(int inst_binary) {
 	
 	printf("dec: opcode: %d shamt : %d funct: %x \n", ret.opcode, ret.shamt, ret.funct);
 	printf("dec: rs: %d rt %d rd : %d \n", ret.rs, ret.rt, ret.rd);
-	printf("dec: simm: %x btarget : %x jtarget: %x\n\n", ret.simm, ret.btarget, ret.jtarget);
+	printf("dec: simm: %x btarget : %x jtarget: %x\n", ret.simm, ret.btarget, ret.jtarget);
 
 	return ret; 
 };
