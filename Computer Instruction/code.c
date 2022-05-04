@@ -6,8 +6,8 @@
 int pc;
 int R[32];
 int Memory[0x4000000];
-int cycle;
 int instruction;
+int cycle;
 int format_type[3] = { 0 };
 
 struct instruction_ {
@@ -41,7 +41,7 @@ int main() {
 	int i = 0;
 
 
-	fp = fopen("simple4.bin", "rb");
+	fp = fopen("input4.bin", "rb");
 	while (1) {
 		ret = fread(&value, sizeof(value), 1, fp);
 		if (ret != 1) { break; }
@@ -53,18 +53,20 @@ int main() {
 	pc = 0;
 	R[31] = -1;
 	R[29] = 0x1000000;
-	printf("\n");
+	for (i = 0; i < 32; i++) { printf("%x ", R[i]); }
+	printf("\n\n");
 	while (1) {
 		fetch();
+		update_pc();
 		in = decode(instruction);
 		value = execute(in);
 		value = memory(in, value);
 		writeback(in, value);
-		Sleep(100);
+		//Sleep(1);
 		for (i = 0; i < 32; i++) { printf("%x ", R[i]); }
-		printf("\n");
+		printf("\npc : %x\n\n",pc);
 		if (pc == -1) { break; }
-		update_pc();
+
 
 		//print();
 		cycle++;
@@ -78,179 +80,6 @@ int main() {
 int instruction;
 void fetch() {
 	instruction = Memory[pc / 4];
-}
-
-int execute(struct instruction_ in) {
-	int value = 0;
-	switch (in.opcode){
-		case 0x0: {
-			switch (in.funct) {
-				case 0x20:
-				case 0x21: {
-					value = R[in.rs] + R[in.rt];
-					break;
-				}
-				case 0x24: {
-					value = R[in.rs] & R[in.rt];
-					break;
-				}
-				case 0x8: {
-					pc = R[in.rs];
-					break;
-				}
-				case 0x27: {
-					value = !(R[in.rs] || R[in.rt]);
-					break;
-				}
-				case 0x25: {
-					value = R[in.rs] || R[in.rt];
-					break;
-				}
-				case 0x2a:
-				case 0x2b: {
-					value = (R[in.rs] < R[in.rt]) ? 1 : 0;
-					break;
-				}
-				case 0x00: {
-					value = R[in.rt] << in.shamt;
-					break;
-				}
-				case 0x02: {
-					value = R[in.rt] >> in.shamt;
-					break;
-				}
-				case 0x22:
-				case 0x23: {
-					value = R[in.rs] - R[in.rt];
-					break;
-				}
-				default: printf("Not In Instance");
-			}
-			format_type[0]++;
-			//printf("R type\n");
-			break;
-		}
-		case 0x2:
-		case 0x3: {
-			switch (in.opcode) {
-				case 0x2: {
-					pc = in.jtarget;
-					break;
-				}
-				case 0x3: {
-					value = pc + 8;
-					pc = in.jtarget;
-					break;
-				}
-				default: printf("Not In Instance");
-			}
-			//printf("J type\n");
-			format_type[2]++;
-			break;
-		}
-		default: {
-			switch (in.opcode) {
-				case 0x8:
-				case 0x9: {
-					value = R[in.rs] + in.simm;
-					break;
-				}
-				case 0xc: {
-					value = R[in.rs] & in.zimm;
-					break;
-				}
-				case 0x4: {
-					if (R[in.rs] == R[in.rt]) { pc = pc + 4 + in.btarget; }
-					break;
-				}
-				case 0x5: {
-					if (R[in.rs] != R[in.rt]) { pc = pc + 4 + in.btarget; }
-					break;
-				}
-				case 0xf: {
-					value = in.zimm << 16;
-					break;
-				}
-				case 0x23: {
-					value = R[in.rs] + in.simm;
-					break;
-				}
-				case 0xd: {
-					value = R[in.rs] || in.zimm;
-					break;
-				}
-				case 0xa:
-				case 0xb: {
-					value = (R[in.rs] < in.simm) ? 1 : 0;
-					break;
-				}
-				case 0x2b: {
-					value = R[in.rt];
-					break;
-				}
-				default:
-					printf("Not In Instance");
-			}
-			format_type[1]++;
-			//printf("I type\n");
-			break;
-		}
-	}
-	return value;
-	printf("\n");
-}
-
-int memory(struct instruction_ in, int value) {
-	if (in.opcode == 0x23) {return Memory[value]; }
-	if (in.opcode == 0x2b) {Memory[R[in.rs] + in.simm] = value;	}
-	return value;
-}
-
-void writeback(struct instruction_ in, int input) {
-	int value = 0;
-	switch (in.opcode) {
-	case 0x0: {
-		switch (in.funct) {
-		case 0x20:
-		case 0x21:
-		case 0x24:
-		case 0x27:
-		case 0x25:
-		case 0x2a:
-		case 0x2b:
-		case 0x00:
-		case 0x02:
-		case 0x22:
-		case 0x23: {
-			R[in.rd] = input;
-			break;
-		}
-	}
-		break;
-	case 0x3: {
-		R[31] = input;
-		break;
-	}
-	default: {
-		switch (in.opcode) {
-		case 0x8:
-		case 0x9:
-		case 0xc:
-		case 0xf:
-		case 0x23:
-		case 0xd:
-		case 0xa:
-		case 0xb:
-		case 0x2b: {
-			R[in.rt] = input;
-			break;
-		}
-				 break;
-		}
-	}
-
-	}
-	}
 }
 
 struct instruction_ decode(int inst_binary) {
@@ -315,6 +144,182 @@ struct instruction_ decode(int inst_binary) {
 
 	return ret; 
 };
+
+int execute(struct instruction_ in) {
+	int value = 0;
+	switch (in.opcode) {
+	case 0x0: {
+		switch (in.funct) {
+		case 0x20:
+		case 0x21: {
+			value = R[in.rs] + R[in.rt];
+			break;
+		}
+		case 0x24: {
+			value = R[in.rs] & R[in.rt];
+			break;
+		}
+		case 0x8: {
+			pc = R[in.rs];
+			break;
+		}
+		case 0x27: {
+			value = !(R[in.rs] || R[in.rt]);
+			break;
+		}
+		case 0x25: {
+			value = R[in.rs] || R[in.rt];
+			break;
+		}
+		case 0x2a:
+		case 0x2b: {
+			value = (R[in.rs] < R[in.rt]) ? 1 : 0;
+			break;
+		}
+		case 0x00: {
+			value = R[in.rt] << in.shamt;
+			break;
+		}
+		case 0x02: {
+			value = R[in.rt] >> in.shamt;
+			break;
+		}
+		case 0x22:
+		case 0x23: {
+			value = R[in.rs] - R[in.rt];
+			break;
+		}
+		default: printf("Not In Instance");
+		}
+		format_type[0]++;
+		//printf("R type\n");
+		break;
+	}
+	case 0x2:
+	case 0x3: {
+		switch (in.opcode) {
+		case 0x2: {
+			pc = in.jtarget;
+			break;
+		}
+		case 0x3: {
+			value = pc + 4;
+			pc = in.jtarget;
+			break;
+		}
+		default: printf("Not In Instance");
+		}
+		//printf("J type\n");
+		format_type[2]++;
+		break;
+	}
+	default: {
+		switch (in.opcode) {
+		case 0x8:
+		case 0x9: {
+			value = R[in.rs] + in.simm;
+			break;
+		}
+		case 0xc: {
+			value = R[in.rs] & in.zimm;
+			break;
+		}
+		case 0x4: {
+			if (R[in.rs] == R[in.rt]) { pc = pc + in.btarget; }
+			break;
+		}
+		case 0x5: {
+			if (R[in.rs] != R[in.rt]) { pc = pc + in.btarget; }
+			break;
+		}
+		case 0xf: {
+			value = in.zimm << 16;
+			break;
+		}
+		case 0x23: {
+			value = R[in.rs] + in.simm;
+			break;
+		}
+		case 0xd: {
+			value = R[in.rs] | in.zimm;
+			break;
+		}
+		case 0xa:
+		case 0xb: {
+			value = (R[in.rs] < in.simm) ? 1 : 0;
+			break;
+		}
+		case 0x2b: {
+			value = R[in.rt];
+			break;
+		}
+		default:
+			printf("Not In Instance");
+		}
+		format_type[1]++;
+		//printf("I type\n");
+		break;
+	}
+	}
+	return value;
+	printf("\n");
+}
+
+int memory(struct instruction_ in, int value) {
+	if (in.opcode == 0x23) { return Memory[value]; }
+	if (in.opcode == 0x2b) {
+		Memory[R[in.rs] + in.simm] = value;
+		printf("Memory address : %x, value :%x\n", R[in.rs] + in.simm, Memory[R[in.rs] + in.simm]);
+	}
+	return value;
+}
+
+void writeback(struct instruction_ in, int input) {
+	int value = 0;
+	switch (in.opcode) {
+	case 0x0: {
+		switch (in.funct) {
+		case 0x20:
+		case 0x21:
+		case 0x24:
+		case 0x27:
+		case 0x25:
+		case 0x2a:
+		case 0x2b:
+		case 0x00:
+		case 0x02:
+		case 0x22:
+		case 0x23: {
+			R[in.rd] = input;
+			break;
+		}
+		}
+		break;
+	}
+	case 0x3: {
+		R[31] = input;
+		printf("%x", input);
+		break;
+	}
+	default: {
+		switch (in.opcode) {
+		case 0x8:
+		case 0x9:
+		case 0xc:
+		case 0xf:
+		case 0x23:
+		case 0xd:
+		case 0xa:
+		case 0xb: {
+			R[in.rt] = input;
+			if (in.opcode == 0x23) printf("Memory address : %x, value :%d\n", R[in.rs] + in.simm, R[in.rt]);
+			break;
+		}
+				break;
+		}
+	}
+	}
+}
 
 void update_pc() {
 	pc = pc + 4;
