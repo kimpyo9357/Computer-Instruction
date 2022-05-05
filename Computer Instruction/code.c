@@ -41,7 +41,7 @@ int main() {
 	int i = 0;
 
 
-	fp = fopen("gcd.bin", "rb");
+	fp = fopen("input4.bin", "rb");
 	while (1) {
 		ret = fread(&value, sizeof(value), 1, fp);
 		if (ret != 1) { break; }
@@ -57,7 +57,7 @@ int main() {
 	while (1) {
 		if (pc == -1) { break; }
 		fetch();
-		printf("Mem[%d] 0x%08X\n", pc, Memory[pc/4]);
+		printf("Mem[%d] 0x%08X\n", pc/4, Memory[pc / 4]);
 		update_pc();
 		in = decode(instruction);
 		value = execute(in);
@@ -85,9 +85,9 @@ void fetch() {
 
 struct instruction_ decode(int inst_binary) {
 	struct instruction_ ret;
-	char buffer[33] = {0};
-	char imm[33] = {0};
-	char target[4][33] = {0};
+	char buffer[33] = { 0 };
+	char imm[33] = { 0 };
+	char target[4][33] = { 0 };
 	int i = 0;
 	memset(&ret, 0, sizeof(ret));
 	ret.instruction = 0;
@@ -139,11 +139,14 @@ struct instruction_ decode(int inst_binary) {
 	strcat(target[3], "00");
 	ret.jtarget = strtoul(target[3], NULL, 2);
 	
+	if (ret.opcode == 0x0 && ret.funct == 0x08) { pc = R[ret.rs]; }
+	if (ret.opcode == 0x2) { pc = ret.jtarget; }
+
 	//printf("dec: opcode: %x shamt : %d funct: %x \n", ret.opcode, ret.shamt, ret.funct);
 	//printf("dec: rs: %d rt %d rd : %d \n", ret.rs, ret.rt, ret.rd);
 	//printf("dec: simm: %x btarget : %x jtarget: %x\n", ret.simm, ret.btarget, ret.jtarget);
 
-	return ret; 
+	return ret;
 };
 
 int execute(struct instruction_ in) {
@@ -161,7 +164,7 @@ int execute(struct instruction_ in) {
 			break;
 		}
 		case 0x8: {
-			pc = R[in.rs];
+			//pc = R[in.rs];
 			count[3]++;
 			break;
 		}
@@ -198,15 +201,15 @@ int execute(struct instruction_ in) {
 		break;
 	}
 	case 0x2:
-	case 0x3: {		
+	case 0x3: {
 		switch (in.opcode) {
-			case 0x2: {
+			/*case 0x2: {
 				pc = in.jtarget;
 				break;
-			}
+			}*/
 			case 0x3: {
 				value = pc + 4;
-				pc = in.jtarget;
+				//pc = in.jtarget;
 				break;
 			}
 			default: printf("Not In Instance");
@@ -271,7 +274,9 @@ int execute(struct instruction_ in) {
 }
 
 int memory(struct instruction_ in, int value) {
-	if (in.opcode == 0x23) { return Memory[value]; }
+	if (in.opcode == 0x23) { 
+		printf("%x", value);
+		return Memory[value]; }
 	if (in.opcode == 0x2b) {
 		Memory[R[in.rs] + in.simm] = value;
 	}
@@ -279,48 +284,48 @@ int memory(struct instruction_ in, int value) {
 }
 
 void writeback(struct instruction_ in, int input) {
-	int value = 0;
+	//int value = 0;
 	switch (in.opcode) {
-	case 0x0: {
-		switch (in.funct) {
-		case 0x20:
-		case 0x21:
-		case 0x24:
-		case 0x27:
-		case 0x25:
-		case 0x2a:
-		case 0x2b:
-		case 0x00:
-		case 0x02:
-		case 0x22:
-		case 0x23: {
-			R[in.rd] = input;
+		case 0x0: {
+			switch (in.funct) {
+				case 0x20:
+				case 0x21:
+				case 0x24:
+				case 0x27:
+				case 0x25:
+				case 0x2a:
+				case 0x2b:
+				case 0x00:
+				case 0x02:
+				case 0x22:
+				case 0x23: {
+					R[in.rd] = input;
+					break;
+				}
+			}
 			break;
 		}
-		}
-		break;
-	}
-	case 0x3: {
-		R[31] = input;
-		printf("%x", input);
-		break;
-	}
-	default: {
-		switch (in.opcode) {
-		case 0x8:
-		case 0x9:
-		case 0xc:
-		case 0xf:
-		case 0x23:
-		case 0xd:
-		case 0xa:
-		case 0xb: {
-			R[in.rt] = input;
+		case 0x3: {
+			R[31] = input;
+			pc = in.jtarget;
 			break;
 		}
-				break;
+		default: {
+			switch (in.opcode) {
+				case 0x8:
+				case 0x9:
+				case 0xc:
+				case 0xf:
+				case 0x23:
+				case 0xd:
+				case 0xa:
+				case 0xb: {
+					R[in.rt] = input;
+					break;
+				}
+			break;
+			}
 		}
-	}
 	}
 }
 
