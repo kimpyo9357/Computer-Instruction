@@ -169,11 +169,11 @@ int execute(struct instruction_ in) {
 			break;
 		}
 		case 0x27: {
-			value = !(R[in.rs] || R[in.rt]);
+			value = !(R[in.rs] | R[in.rt]);
 			break;
 		}
 		case 0x25: {
-			value = R[in.rs] || R[in.rt];
+			value = R[in.rs] | R[in.rt];
 			break;
 		}
 		case 0x2a:
