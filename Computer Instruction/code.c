@@ -41,7 +41,7 @@ int main() {
 	int i = 0;
 
 
-	fp = fopen("input4.bin", "rb");
+	fp = fopen("gcd.bin", "rb");
 	while (1) {
 		ret = fread(&value, sizeof(value), 1, fp);
 		if (ret != 1) { break; }
@@ -69,6 +69,7 @@ int main() {
 		printf("pc : %d", pc);
 		if (in.opcode == 0x23) printf(", Memory address : %x, value :%d", R[in.rs] + in.simm, R[in.rt]);
 		printf("\n\n");
+		Sleep(10);
 		cycle++;
 	}
 
@@ -169,11 +170,11 @@ int execute(struct instruction_ in) {
 			break;
 		}
 		case 0x27: {
-			value = !(R[in.rs] | R[in.rt]);
+			value = ~(R[in.rs] | R[in.rt]);
 			break;
 		}
 		case 0x25: {
-			value = R[in.rs] | R[in.rt];
+			value = (R[in.rs] | R[in.rt]);
 			break;
 		}
 		case 0x2a:
@@ -249,7 +250,7 @@ int execute(struct instruction_ in) {
 				break;
 			}
 			case 0xd: {
-				value = R[in.rs] | in.zimm;
+				value = (R[in.rs] | in.zimm);
 				break;
 			}
 			case 0xa:
@@ -275,7 +276,7 @@ int execute(struct instruction_ in) {
 
 int memory(struct instruction_ in, int value) {
 	if (in.opcode == 0x23) { 
-		printf("%x", value);
+		//printf("%x", value);
 		return Memory[value]; }
 	if (in.opcode == 0x2b) {
 		Memory[R[in.rs] + in.simm] = value;
