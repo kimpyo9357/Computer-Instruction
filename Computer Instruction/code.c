@@ -169,6 +169,11 @@ int execute(struct instruction_ in) {
 			count[3]++;
 			break;
 		}
+		case 0x9: { // jalr
+			count[3]++;
+			value = pc;
+			pc = R[in.rs];
+		}
 		case 0x27: {
 			value = ~(R[in.rs] | R[in.rt]);
 			break;
@@ -292,6 +297,7 @@ void writeback(struct instruction_ in, int input) {
 				case 0x20:
 				case 0x21:
 				case 0x24:
+				case 0x9:
 				case 0x27:
 				case 0x25:
 				case 0x2a:
