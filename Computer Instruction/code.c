@@ -41,7 +41,7 @@ int main() {
 	int i = 0;
 
 
-	fp = fopen("gcd.bin", "rb");
+	fp = fopen("fib_fix.bin", "rb");
 	while (1) {
 		ret = fread(&value, sizeof(value), 1, fp);
 		if (ret != 1) { break; }
@@ -60,6 +60,7 @@ int main() {
 		printf("Mem[%d] 0x%08X\n", pc/4, Memory[pc / 4]);
 		update_pc();
 		in = decode(instruction);
+		//printf("%x", in.rd);
 		value = execute(in);
 		value = memory(in, value);
 		writeback(in, value);
@@ -69,7 +70,7 @@ int main() {
 		printf("pc : %d", pc);
 		if (in.opcode == 0x23) printf(", Memory address : %x, value :%d", R[in.rs] + in.simm, R[in.rt]);
 		printf("\n\n");
-		Sleep(10);
+		//Sleep(100);
 		cycle++;
 	}
 
@@ -173,6 +174,7 @@ int execute(struct instruction_ in) {
 			count[3]++;
 			value = pc;
 			pc = R[in.rs];
+			break;
 		}
 		case 0x27: {
 			value = ~(R[in.rs] | R[in.rt]);
