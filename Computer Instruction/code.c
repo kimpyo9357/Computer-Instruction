@@ -41,7 +41,7 @@ int main() {
 	int i = 0;
 
 
-	fp = fopen("input4.bin", "rb");
+	fp = fopen("fib_fix.bin", "rb");
 	while (1) {
 		ret = fread(&value, sizeof(value), 1, fp);
 		if (ret != 1) { break; }
@@ -68,7 +68,7 @@ int main() {
 		for (i = 0; i < 32; i++) { printf("%x ", R[i]); }
 		printf("\n");
 		printf("pc : %d", pc);
-		if (in.opcode == 0x23) printf(", Memory address : %x, value :%d", R[in.rs] + in.simm, R[in.rt]);
+		if (in.opcode == 0x23 || in.opcode == 0x2b) printf(", Memory address : %x, value :%d", R[in.rs] + in.simm, R[in.rt]);
 		printf("\n\n");
 		//Sleep(100);
 		cycle++;
