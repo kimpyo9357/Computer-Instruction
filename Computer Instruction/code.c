@@ -41,7 +41,7 @@ int main() {
 	int i = 0;
 
 
-	fp = fopen("fib_fix.bin", "rb");
+	fp = fopen("input4.bin", "rb");
 	while (1) {
 		ret = fread(&value, sizeof(value), 1, fp);
 		if (ret != 1) { break; }
@@ -167,11 +167,9 @@ int execute(struct instruction_ in) {
 		}
 		case 0x8: {
 			//pc = R[in.rs];
-			count[3]++;
 			break;
 		}
 		case 0x9: { // jalr
-			count[3]++;
 			value = pc;
 			pc = R[in.rs];
 			break;
@@ -224,7 +222,6 @@ int execute(struct instruction_ in) {
 			}
 		//printf("J type\n");
 		count[2]++;
-		count[3]++;
 		break;
 	}
 	default: {
@@ -284,9 +281,11 @@ int execute(struct instruction_ in) {
 int memory(struct instruction_ in, int value) {
 	if (in.opcode == 0x23) { 
 		//printf("%x", value);
-		return Memory[value]; }
+		count[3]++;
+		return Memory[value/4]; }
 	if (in.opcode == 0x2b) {
-		Memory[R[in.rs] + in.simm] = value;
+		count[3]++;
+		Memory[(R[in.rs] + in.simm)/4] = value;
 	}
 	return value;
 }
